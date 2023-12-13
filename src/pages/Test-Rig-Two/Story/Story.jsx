@@ -82,20 +82,16 @@ const Story = () => {
   const fetchApi = async () => {
     setLoading(true);
     let type =
-      localStorage.getItem('apphomelevel') === 'Word' ? 'Sentence' : 'Word';
+      localStorage.getItem('apphomelevel') === 'Word' ? 'sentence' : 'word';
     localStorage.setItem('apphomelevel', type);
     try {
-      const response = await fetch(
-        `https://telemetry-dev.theall.ai/content-service/v1/WordSentence/getRandomContent?language=${localStorage.getItem(
-          'apphomelang'
-        )}&type=${type}&limit= ${currentLine === 2 ? 2 : 3}`
-      )
-        .then(res => {
-          return res.json();
-        })
+      axios
+        .get(
+          `https://www.learnerai-dev.theall.ai/lais/scores/GetContent/${type}/${localStorage.getItem('virtualID')}?language=${localStorage.getItem('apphomelang')}&limit=${currentLine === 2 ? 2 : 3}`
+          )
         .then(data => {
           const oldPosts = posts || [];
-          const newPosts = data?.data;
+          const newPosts = data?.data.content;
 
           if (currentLine && currentLine < maxAllowedContent - 1 && newPosts?.length) {
             setPosts([...oldPosts, ...newPosts]);
@@ -112,7 +108,7 @@ const Story = () => {
     }
   };
 
-  //console.log(posts);
+  console.log(posts);
   React.useEffect(() => {
     learnAudio();
   }, [temp_audio]);
@@ -125,9 +121,7 @@ const Story = () => {
   const playTeacherAudio = () => {
     set_temp_audio(
       new Audio(
-        posts?.[currentLine].data[0]?.[
-          localStorage.getItem('apphomelang')
-        ].audio
+        posts?.[currentLine].contentSourceData[0]?.audioUrl
       )
     );
   };
@@ -253,7 +247,7 @@ const Story = () => {
               </div>
             </div>
           </Center>
-          <Box maxW='2xl' centerContent
+          <Box maxW='2xl'
             style={{
               backgroundColor: `${localStorage.getItem('apphomelevel') === 'Word' &&
                 posts?.length > 0
@@ -343,14 +337,12 @@ const Story = () => {
               <>
                 <VStack>
                   <Box>
-                    {posts?.map((post, ind) =>
-                      currentLine === ind ? (
+                    
                         <Center h='30vh'>
                           <Flex
                             pos={'relative'}
                             w={'100%'}
                             className="story-box-container"
-                            key={ind}
                             display={'flex'}
                             justifyContent={'center'}
 
@@ -366,25 +358,17 @@ const Story = () => {
                               <Box p="4">
                                 <h1 className="story-line">
                                   {
-                                    post?.data[0]?.[
-                                      localStorage.getItem('apphomelang')
-                                    ]?.text
+                                    posts[currentLine]?.contentSourceData[0]?.text
                                   }
                                 </h1>
                                 {localStorage.setItem(
                                   'contentText',
-                                  post?.data[0]?.[
-                                    localStorage.getItem('apphomelang')
-                                  ]?.text
+                                  posts[currentLine]?.contentSourceData[0]?.text
                                 )}
                               </Box>
                             </div>
                           </Flex>
                         </Center>
-                      ) : (
-                        ''
-                      )
-                    )}
                   </Box>
                   <Box>
                     {isUserSpeak ? (
@@ -464,10 +448,7 @@ const Story = () => {
                     ) : (
                       <div className="voice-recorder">
                         <HStack gap={'2rem'}>
-                          {posts?.[currentLine]?.data[0]?.[
-                            localStorage.getItem('apphomelang')
-                          ]?.audio !== ' '
-                            ? isAudioPlay !== 'recording' && (
+                          {isAudioPlay !== 'recording' && (
 
                               <VStack>
                                 <div>
@@ -519,8 +500,7 @@ const Story = () => {
                                 </div>
                               </VStack>
 
-                            )
-                            : ''}
+                            )}
                         
                           <VStack
                             style={{ marginTop: '-13px', marginLeft: '0px' }}
